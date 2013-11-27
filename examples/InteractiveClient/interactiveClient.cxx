@@ -15,10 +15,10 @@
 
 //store a mappin of job output types to every jobrequest of that type.
 //this way we can easily send out a query to the server for a single output type
-std::map<remus::MESH_OUTPUT_TYPE,std::vector<remus::client::JobRequest> > AllJobTypeCombinations;
-typedef std::map<remus::MESH_OUTPUT_TYPE,std::vector<remus::client::JobRequest> >::iterator AllTypeIt;
-typedef std::vector<remus::client::JobRequest> RequestVector;
-typedef std::vector<remus::client::JobRequest>::iterator RequestIt;
+std::map<remus::MESH_OUTPUT_TYPE,std::vector<remus::client::JobDataRequest> > AllJobTypeCombinations;
+typedef std::map<remus::MESH_OUTPUT_TYPE,std::vector<remus::client::JobDataRequest> >::iterator AllTypeIt;
+typedef std::vector<remus::client::JobDataRequest> RequestVector;
+typedef std::vector<remus::client::JobDataRequest>::iterator RequestIt;
 
 //populate the global memory mapping of job requests
 void populateJobTypes()
@@ -29,7 +29,7 @@ void populateJobTypes()
     for(int j=1; j < remus::NUM_MESH_INPUT_TYPES; j++)
       {
       remus::MESH_INPUT_TYPE inType = static_cast<remus::MESH_INPUT_TYPE>(j);
-      AllJobTypeCombinations[outType].push_back(remus::client::JobRequest(inType,outType));
+      AllJobTypeCombinations[outType].push_back(remus::client::JobDataRequest(inType,outType));
       }
     }
 }
@@ -85,7 +85,7 @@ void dumpJobInfo(remus::Client& client)
     }
 }
 
-void submitJob(remus::Client& client)
+void submitDataJob(remus::Client& client)
 {
   for(int i=1; i < remus::NUM_MESH_INPUT_TYPES; i++)
     {
@@ -109,9 +109,51 @@ void submitJob(remus::Client& client)
   std::cout<<"Enter Job Data (string) : " << std::endl;
   std::cin >> data;
 
-  remus::client::JobRequest request(static_cast<remus::MESH_INPUT_TYPE>(inType),
+  remus::client::JobDataRequest request(static_cast<remus::MESH_INPUT_TYPE>(inType),
                             static_cast<remus::MESH_OUTPUT_TYPE>(outType),
                             data);
+  remus::client::Job job = client.submitJob(request);
+
+  std::cout << "Job Submitted, info is: " << std::endl;
+  std::cout << "Job Valid: " << job.valid() << std::endl;
+  std::cout << "Job Id: " << job.id() << std::endl;
+  std::cout << "Job Input Type: " << remus::to_string(job.type().inputType()) << std::endl;
+  std::cout << "Job Output Type: " << remus::to_string(job.type().outputType()) << std::endl;
+  return;
+}
+
+void submitFileJob(remus::Client& client)
+{
+  for(int i=1; i < remus::NUM_MESH_INPUT_TYPES; i++)
+    {
+    remus::MESH_INPUT_TYPE mt=static_cast<remus::MESH_INPUT_TYPE>(i);
+    std::cout << i << " " << remus::to_string(mt) << std::endl;
+    }
+  std::cout<<"Enter Job Input Type (integer): " << std::endl;
+  int inType;
+  std::cin >> inType;
+
+  for(int i=1; i < remus::NUM_MESH_OUTPUT_TYPES; i++)
+    {
+    remus::MESH_OUTPUT_TYPE mt=static_cast<remus::MESH_OUTPUT_TYPE>(i);
+    std::cout << i << " " << remus::to_string(mt) << std::endl;
+    }
+  std::cout<<"Enter Job Output Type (integer): " << std::endl;
+  int outType;
+  std::cin >> outType;
+
+  std::string path,args;
+  std::cout<<"Enter Job File Path (string) : " << std::endl;
+  std::cin >> path;
+
+  std::cout<<"Enter Job File Arguments (string) : " << std::endl;
+  std::cin >> args;
+
+  remus::client::JobFileRequest request(
+                            static_cast<remus::MESH_INPUT_TYPE>(inType),
+                            static_cast<remus::MESH_OUTPUT_TYPE>(outType),
+                            path,
+                            args);
   remus::client::Job job = client.submitJob(request);
 
   std::cout << "Job Submitted, info is: " << std::endl;
@@ -150,7 +192,8 @@ int showMenu()
   std::cout << "Options Are:" << std::endl;
   std::cout << "1: Dump Aviable Worker Types" << std::endl;
   std::cout << "2: Dump Info On Job" << std::endl;
-  std::cout << "3: Submit Job" << std::endl;
+  std::cout << "3: Submit Data Job" << std::endl;
+  std::cout << "4: Submit File Job" << std::endl;
   std::cout << "9: Connect to different server" << std::endl;
   std::cout << std::endl;
   std::cout << "All other will quit application." << std::endl;
@@ -179,7 +222,10 @@ int main ()
         dumpJobInfo(*c);
         break;
       case 3:
-        submitJob(*c);
+        submitDataJob(*c);
+        break;
+      case 4:
+        submitFileJob(*c);
         break;
       case 9:
         changeConntion(c);

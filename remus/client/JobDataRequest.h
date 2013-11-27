@@ -10,13 +10,17 @@
 //
 //=============================================================================
 
-#ifndef remus_client_JobRequest_h
-#define remus_client_JobRequest_h
+#ifndef remus_client_JobDataRequest_h
+#define remus_client_JobDataRequest_h
 
 #include <string>
 #include <sstream>
 
 #include <remus/common/MeshIOType.h>
+
+//JobDataRequest is the easiest way to send raw binary data streams
+//to a worker. Unlike its sibling JobFileRequest it doesn't have command
+//arguments or has any concept of locality
 
 //A job request has two purposes. First it is sent to the server to determine
 //if the mesh type and data model that the job request has is supported.
@@ -28,13 +32,13 @@
 //unique for each mesher
 namespace remus{
 namespace client{
-class JobRequest
+class JobDataRequest
 {
 public:
 
   //Construct a job request with only a mesher type given. This is used to
   //when asking a server if it supports a type of mesh
-  JobRequest(remus::MESH_INPUT_TYPE inputFileType,
+  JobDataRequest(remus::MESH_INPUT_TYPE inputFileType,
              remus::MESH_OUTPUT_TYPE outputMeshIOType):
     CombinedType(inputFileType,outputMeshIOType),
     JobInfo()
@@ -43,7 +47,7 @@ public:
 
   //Construct a job request with a mesh type and the info required by the worker
   //to run the job. This is used when submitting a job from the client to the server.
-  JobRequest(remus::MESH_INPUT_TYPE inputFileType,
+  JobDataRequest(remus::MESH_INPUT_TYPE inputFileType,
              remus::MESH_OUTPUT_TYPE outputMeshIOType,
              const std::string& info):
     CombinedType(inputFileType,outputMeshIOType),
@@ -52,14 +56,14 @@ public:
     }
 
   //Construct a job request with the given types held inside the remus::common::MeshIOType object
-  explicit JobRequest(remus::common::MeshIOType combinedType):
+  explicit JobDataRequest(remus::common::MeshIOType combinedType):
     CombinedType(combinedType),
     JobInfo()
     {
     }
 
   //Construct a job request with the given types held inside the remus::common::MeshIOType object
-  JobRequest(remus::common::MeshIOType combinedType, const std::string& info):
+  JobDataRequest(remus::common::MeshIOType combinedType, const std::string& info):
     CombinedType(combinedType),
     JobInfo(info)
     {
@@ -80,7 +84,7 @@ private:
 };
 
 //------------------------------------------------------------------------------
-inline std::string to_string(const remus::client::JobRequest& request)
+inline std::string to_string(const remus::client::JobDataRequest& request)
 {
   //convert a request to a string, used as a hack to serialize
   //encoding is simple, contents newline separated
@@ -93,7 +97,7 @@ inline std::string to_string(const remus::client::JobRequest& request)
 
 
 //------------------------------------------------------------------------------
-inline remus::client::JobRequest to_JobRequest(const std::string& msg)
+inline remus::client::JobDataRequest to_JobDataRequest(const std::string& msg)
 {
   //convert a job detail from a string, used as a hack to serialize
   std::stringstream buffer(msg);
@@ -106,17 +110,17 @@ inline remus::client::JobRequest to_JobRequest(const std::string& msg)
 
   buffer >> dataLen;
   data = remus::internal::extractString(buffer,dataLen);
-  return remus::client::JobRequest(jobRequirements,data);
+  return remus::client::JobDataRequest(jobRequirements,data);
 }
 
 
 //------------------------------------------------------------------------------
-inline remus::client::JobRequest to_JobRequest(const char* data, int size)
+inline remus::client::JobDataRequest to_JobDataRequest(const char* data, int size)
 {
   //convert a job request from a string, used as a hack to serialize
   std::string temp(size,char());
   memcpy(const_cast<char*>(temp.c_str()),data,size);
-  return to_JobRequest( temp );
+  return to_JobDataRequest( temp );
 }
 
 

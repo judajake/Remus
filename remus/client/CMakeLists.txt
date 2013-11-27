@@ -6,7 +6,8 @@ include_directories(${ZeroMQ_INCLUDE_DIR})
 set(headers
     Client.h
     Job.h
-    JobRequest.h
+    JobDataRequest.h
+    JobFileRequest.h
     JobResult.h
     JobStatus.h
     ServerConnection.h

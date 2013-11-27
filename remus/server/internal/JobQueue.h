@@ -13,7 +13,7 @@
 #ifndef __remus_server_internal_JobQueue_h
 #define __remus_server_internal_JobQueue_h
 
-#include <remus/client/JobRequest.h>
+#include <remus/client/JobDataRequest.h>
 #include <remus/common/Message.h>
 #include <remus/server/internal/uuidHelper.h>
 #include <remus/worker/Job.h>
@@ -180,8 +180,10 @@ remus::worker::Job JobQueue::takeJob(remus::common::MeshIOType type)
   //todo this needs to be easier to convert an encoded job request
   //into the job that is being sent to the worker, without having to copy
   // the data so many times.
-  const remus::client::JobRequest request(remus::client::to_JobRequest(item->Message.data(),
-                                          item->Message.dataSize()));
+  const remus::client::JobDataRequest request(
+                        remus::client::to_JobDataRequest(item->Message.data(),
+                        item->Message.dataSize()));
+
   remus::worker::Job job(item->Id,type,request.jobInfo());
 
   //again don't use item after the remove_if the iterator is invalid

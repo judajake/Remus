@@ -1,0 +1,80 @@
+import "protocall.proto";
+
+option optimize_for = SPEED;
+
+service BasicRPCService {
+  rpc canMesh(Request) returns(Response);
+  rpc submitJob(Request) returns(Response);
+  rpc jobStatus(Request) returns(Response);
+  rpc retrieveResults(Request) returns(Response);
+  rpc terminate(Request) returns(Response);
+}
+
+message MeshIOType {
+  required uint32 in_type = 1;
+  required uint32 out_type = 2;
+}
+
+message UUID {
+    required string id = 1;
+}
+
+message Job {
+  required UUID job_id = 1;
+  required MeshIOType type = 2;
+}
+
+message JobDataRequest {
+  required MeshIOType type = 1;
+  //todo this needs to handle the use case where we are sending
+  //more data than protobuf can handle
+  required string jobinfo = 2;
+}
+
+message JobFileRequest {
+  required MeshIOType type = 1;
+  //todo this needs to handle the use case where we are sending
+  //more data than protobuf can handle
+  required string jobinfo = 2;
+  required string jobargs = 3;
+}
+
+message JobProgress {
+  optional int32 value = 1;
+  optional string message = 2;
+}
+
+message JobStatus {
+  enum STATUS_MODE {
+  INVALID_STATUS = 0;
+  QUEUED = 1;
+  IN_PROGRESS = 2;
+  FINISHED = 3;
+  FAILED = 4;
+  EXPIRED = 5;
+  }
+
+  required UUID job_id = 1;
+  optional STATUS_MODE stype = 2 [default = INVALID_STATUS];
+  optional JobProgress progress = 3;
+}
+
+message JobResult {
+  required UUID job_id = 1;
+  //todo needs to handle the use case where we are sending
+  //more data than protobuf can handle
+  required string data = 2;
+}
+
+message Request {
+  optional Job job = 1;
+  optional JobFileRequest filerequest =  2;
+  optional JobDataRequest datarequest = 3;
+}
+
+message Response {
+  optional bool valid = 1;
+  optional Job job = 2;
+  optional JobStatus status =  3;
+  optional JobResult result = 4;
+}

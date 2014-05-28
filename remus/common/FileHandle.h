@@ -28,6 +28,8 @@ struct FileHandle
   std::size_t size() const { return Path.size(); }
   const char* data() const { return Path.data(); }
 
+  const char& operator[](std::size_t at) const{ return Path[at]; }
+
   const std::string& path() const{ return Path; }
 private:
   std::string Path;

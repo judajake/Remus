@@ -36,7 +36,11 @@ struct ConditionalStorage
   if(this->Size > 0)
     {
     this->Space = boost::shared_array<char>( new char[this->Size] );
+#ifdef WIN32
+    memcpy(this->Space.get(),&t[0],t.size());
+#else
     memcpy(this->Space.get(),t.data(),t.size());
+#endif
     }
   }
 
